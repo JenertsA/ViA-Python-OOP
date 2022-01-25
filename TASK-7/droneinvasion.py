@@ -1,24 +1,7 @@
-
 from turtle import *
 import math
 import random
 from abc import *
-
-class EventHandler():
-    def __init__(self):
-        self.__queue = []
-        self.__eventKeeper = {}
-
-    def addToQueue(self, event):
-        self.__queue.append(event)
-
-    def run(self):
-        while(True):
-            if len(self.__queue) > 0:
-                nextEvent = self.__queue.pop(0)  # get next event
-                self.__eventKeeper[nextEvent]()  # run callback function
-            else:
-                print('waiting for the event')
 
 
 class LaserCannon(Turtle):
@@ -71,6 +54,7 @@ class BoundedTurtle(Turtle):
 
     def getXMax(self):
         return self.__xMax
+
     def getYMin(self):
         return self.__yMin
 
@@ -139,6 +123,7 @@ class Bomb(BoundedTurtle):
             if self.distance(a) < 5:
                 a.remove()
                 exploded = True
+                myGame.addPoint()
         if self.outOfBounds() or exploded:
             self.remove()
         else:
@@ -152,30 +137,43 @@ class Bomb(BoundedTurtle):
     def remove(self):
         self.hideturtle()
 
+
 class Score(Turtle):
     def __init__(self):
-        super().__init__()
+        super().__init__()  # init turtle
+        self.hideturtle()   # we don't need turtle
+        self.up()           # lift pen to move to top right
+        self.goto(80, 90)   # move to location
         self.__score = 0
+        self.write("SCORE: %s" % (self.__score))
 
-    def draw(self,score):
-        self.__score = score
-        self.write("TEST")
+    def increaseScore(self):   # add +1 to the score
+        self.__score += 1
+        self.__update()
 
-class DroneInvasion:
+    def __update(self):     # re-draw score board
+        self.clear()
+        self.write("SCORE: %s" % (self.__score))
+
+
+class DroneInvasion():
     def __init__(self, xMin, xMax, yMin, yMax):
         self.__xMin = xMin
         self.__xMax = xMax
         self.__yMin = yMin
         self.__yMax = yMax
-        self.__score = Score()
 
     def play(self):
         self.__mainWin = LaserCannon(self.__xMin, self.__xMax,
                                      self.__yMin, self.__yMax).getscreen()
         self.__mainWin.bgcolor('light green')
-        self.__score.draw(10)
+
         self.__mainWin.setworldcoordinates(self.__xMin, self.__yMin,
                                            self.__xMax, self.__yMax)
+        # create score board
+        # it must be called here after world coordinate setup
+        self.__score = Score()
+
         self.__mainWin.ontimer(self.addDrone, 1000)
         self.__mainWin.listen()
         mainloop()
@@ -185,6 +183,9 @@ class DroneInvasion:
             Drone(1, self.__xMin, self.__xMax,
                   self.__yMin, self.__yMax)
         self.__mainWin.ontimer(self.addDrone, 1000)
+
+    def addPoint(self): # method to add point to the score board
+        self.__score.increaseScore()
 
 
 myGame = DroneInvasion(-100, 100, -100, 100)
